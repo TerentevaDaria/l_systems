@@ -1,6 +1,6 @@
 import sys, sqlite3, time
 
-from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush
+from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush, QPaintEvent
 from PyQt5.QtTest import QTest
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtCore import Qt, QTimer
@@ -26,12 +26,15 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
     def initUi(self):
         con = sqlite3.connect('systems.db')
         cur = con.cursor()
-        self.examples = ['Другой вариант'] + list(cur.execute("""SELECT name from systems""").fetchall()[0])
+        self.last_i = 0
+        self.coordinates = []
+        self.flag = False
+        self.examples = ['Другой вариант'] + list(map(lambda x: x[0], list(cur.execute("""SELECT name from systems""").fetchall())))
         con.close()
 
         self.comboBox.insertItems(0, self.examples)
         self.comboBox.currentTextChanged.connect(self.set_params)
-        self.confirmPushButton.clicked.connect(self.get_params)
+        self.confirmPushButton.clicked.connect(self.drawing)
 
         self.resize(self.width, self.width)
         self.showMaximized()
@@ -63,6 +66,12 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.skipLineEdit.setText(params[3])
         self.textEdit.setText(params[4])
 
+    def drawing(self):
+        self.last_i = 0
+        self.get_params()
+        self.get_coordinates()
+        self.flag = True
+
     def get_params(self):
         self.axiom = self.axiomLineEdit.text()
         self.draw = self.drawLineEdit.text()
@@ -77,20 +86,18 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.step = int(self.stepSpinBox.text())
         self.generation = int(self.generationSpinBox.text())
 
-    def draw_l_system(self, painter):
-        x = self.x
-        y = self.y
-        angle_cur = 0
+    def get_coordinates(self):
+        self.coordinates = [(self.x, self.y)]
+        angle_cur = pi / 2
         for i in self.get_generation(self.generation):
             if i in self.draw:
-                painter.drawLine(x, y, int(x + self.step * sin(angle_cur)), int(y + self.step * cos(angle_cur)))
-                x = int(x + self.step * sin(angle_cur))
-                y = int(y + self.step * cos(angle_cur))
+                self.coordinates.append((self.coordinates[-1][0] + self.step * sin(angle_cur),
+                                         self.coordinates[-1][1] + self.step * cos(angle_cur)))
             elif i == '+':
                 angle_cur += self.angle
             elif i == '-':
                 angle_cur -= self.angle
-        self.update()
+        self.coordinates = list(map(lambda x: [int(x[0]), int(x[1])], self.coordinates))
 
     def get_generation(self, n):
         s = self.axiom
@@ -104,12 +111,33 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
             s = s1[::]
         return s
 
+    def draw_l_system(self, painter):
+        self.flag = False
+        for i in range(1, self.last_i):
+            painter.drawLine(*self.coordinates[i - 1], *self.coordinates[i])
+        QTimer.singleShot(2000, self.update)
+        if self.last_i != len(self.coordinates) - 1:
+            self.flag = True
+            self.last_i += 1
+        else:
+            self.last_i = 0
+        self.update()
+
+    def draw_l_system2(self, painter):
+        for i in range(1, len(self.coordinates)):
+            painter.drawLine(*self.coordinates[i - 1], *self.coordinates[i])
+        self.update()
+
     def paintEvent(self, event):
         painter = QPainter()
         painter.begin(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(QPen(Qt.black, 2))
-        self.draw_l_system(painter)
+
+        if self.flag:
+            self.draw_l_system(painter)
+        else:
+            self.draw_l_system2(painter)
 
         dot_painter = QPainter()
         dot_painter.begin(self)
