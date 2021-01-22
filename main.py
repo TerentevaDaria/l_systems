@@ -29,12 +29,13 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.last_i = 0
         self.coordinates = []
         self.flag = False
-        self.examples = ['Другой вариант'] + list(map(lambda x: x[0], list(cur.execute("""SELECT name from systems""").fetchall())))
+        self.examples = ['Другой вариант'] + list(
+            map(lambda x: x[0], list(cur.execute("""SELECT name from systems""").fetchall())))
         con.close()
 
         self.comboBox.insertItems(0, self.examples)
         self.comboBox.currentTextChanged.connect(self.set_params)
-        self.confirmPushButton.clicked.connect(self.drawing)
+        self.pushButton_confirm.clicked.connect(self.drawing)
 
         self.resize(self.width, self.width)
         self.showMaximized()
@@ -54,16 +55,16 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
             self.change_edit(True, params)
 
     def change_edit(self, bool_, params):
-        self.axiomLineEdit.setReadOnly(bool_)
-        self.drawLineEdit.setReadOnly(bool_)
-        self.skipLineEdit.setReadOnly(bool_)
-        self.angleSpinBox.setReadOnly(bool_)
+        self.lineEdit_axiom.setReadOnly(bool_)
+        self.lineEdit_draw.setReadOnly(bool_)
+        self.lineEdit_skip.setReadOnly(bool_)
+        self.doubleSpinBox_angle.setReadOnly(bool_)
         self.textEdit.setReadOnly(bool_)
 
-        self.axiomLineEdit.setText(params[0])
-        self.angleSpinBox.setValue(params[1])
-        self.drawLineEdit.setText(params[2])
-        self.skipLineEdit.setText(params[3])
+        self.lineEdit_axiom.setText(params[0])
+        self.doubleSpinBox_angle.setValue(params[1])
+        self.lineEdit_draw.setText(params[2])
+        self.lineEdit_skip.setText(params[3])
         self.textEdit.setText(params[4])
 
     def drawing(self):
@@ -73,31 +74,46 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.flag = True
 
     def get_params(self):
-        self.axiom = self.axiomLineEdit.text()
-        self.draw = self.drawLineEdit.text()
-        self.skip = self.skipLineEdit.text()
-        self.angle = int(self.angleSpinBox.text()) * pi / 180
+        self.d = {'вверх': pi, 'вправо': pi / 2, 'вниз': 0, 'влево': 3 * pi / 2}
+        self.start_angle = self.d[self.comboBox_direction.currentText()]
+        self.axiom = self.lineEdit_axiom.text()
+        self.draw = self.lineEdit_draw.text()
+        self.skip = self.lineEdit_skip.text()
+        self.angle = float(self.doubleSpinBox_angle.text().replace(',', '.')) * pi / 180
         self.ruls = {}
         ruls_ = self.textEdit.toPlainText()
         if ruls_:
             for i in ruls_.split('\n'):
                 key, value = i.split(':')
                 self.ruls[key] = value
-        self.step = int(self.stepSpinBox.text())
-        self.generation = int(self.generationSpinBox.text())
+        self.step = int(self.spinBox_step.text())
+        self.generation = int(self.spinBox_generation.text())
 
     def get_coordinates(self):
-        self.coordinates = [(self.x, self.y)]
-        angle_cur = pi / 2
+        self.coordinates = []
+        x = self.x
+        y = self.y
+        self.stack = [(self.x, self.y, self.start_angle)]
+        angle_cur = self.start_angle
         for i in self.get_generation(self.generation):
             if i in self.draw:
-                self.coordinates.append((self.coordinates[-1][0] + self.step * sin(angle_cur),
-                                         self.coordinates[-1][1] + self.step * cos(angle_cur)))
+                if i.isupper():
+                    self.coordinates.append([x, y, x + self.step * sin(angle_cur), y + self.step * cos(angle_cur)])
+                x += self.step * sin(angle_cur)
+                y += self.step * cos(angle_cur)
             elif i == '+':
                 angle_cur += self.angle
             elif i == '-':
                 angle_cur -= self.angle
-        self.coordinates = list(map(lambda x: [int(x[0]), int(x[1])], self.coordinates))
+            elif i == '[':
+                self.stack.append((x,
+                                   y, angle_cur))
+            elif i == ']':
+                x = self.stack[-1][0]
+                y = self.stack[-1][1]
+                angle_cur = self.stack[-1][2]
+                self.stack.pop()
+        print(self.coordinates)
 
     def get_generation(self, n):
         s = self.axiom
@@ -109,14 +125,20 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
                 else:
                     s1 += j
             s = s1[::]
-        return s
+        j = 0
+        for i in range(len(s)):
+            if s[i] not in ['+', '-']:
+                j = i
+                break
+        return s[j:]
 
     def draw_l_system(self, painter):
         self.flag = False
-        for i in range(1, self.last_i):
-            painter.drawLine(*self.coordinates[i - 1], *self.coordinates[i])
+        for i in range(0, self.last_i):
+            if self.coordinates[i][2]:
+                painter.drawLine(*self.coordinates[i])
         QTimer.singleShot(2000, self.update)
-        if self.last_i != len(self.coordinates) - 1:
+        if self.last_i != len(self.coordinates):
             self.flag = True
             self.last_i += 1
         else:
@@ -124,8 +146,9 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.update()
 
     def draw_l_system2(self, painter):
-        for i in range(1, len(self.coordinates)):
-            painter.drawLine(*self.coordinates[i - 1], *self.coordinates[i])
+        for i in range(0, len(self.coordinates)):
+            if self.coordinates[i][2]:
+                painter.drawLine(*self.coordinates[i])
         self.update()
 
     def paintEvent(self, event):
