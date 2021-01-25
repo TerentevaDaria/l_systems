@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(453, 606)
+        MainWindow.resize(563, 606)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
@@ -110,9 +110,12 @@ class Ui_MainWindow(object):
         self.lineEdit_axiom = QtWidgets.QLineEdit(self.gridLayoutWidget)
         self.lineEdit_axiom.setObjectName("lineEdit_axiom")
         self.gridLayout.addWidget(self.lineEdit_axiom, 2, 0, 1, 1)
+        # self.openGLWidget = QtWidgets.QOpenGLWidget(self.centralwidget)
+        # self.openGLWidget.setGeometry(QtCore.QRect(400, 10, 141, 541))
+        # self.openGLWidget.setObjectName("openGLWidget")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 453, 18))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 563, 18))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)

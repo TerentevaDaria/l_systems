@@ -1,15 +1,90 @@
 import sys, sqlite3, time
 
+from PyQt5 import QtCore
 from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush, QPaintEvent
 from PyQt5.QtTest import QTest
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QScrollArea, QSizePolicy, QOpenGLWidget, QLayout
 from PyQt5.QtCore import Qt, QTimer
 
 from math import pi, sin, cos
 
 from main_design import Ui_MainWindow
 
+import OpenGL.GL as gl
+
 sys.setrecursionlimit(1000000)
+
+
+class GLWidget(QOpenGLWidget):
+    def __init__(self, parent=None):
+        super(GLWidget, self).__init__(parent)
+
+        self.xRot = 0
+        self.yRot = 0
+        self.zRot = 0
+        self.last_index = -1
+
+        self.coordinates = []
+
+        timer = QTimer(self)
+        timer.timeout.connect(self.draw_system)
+        timer.start(4)
+
+    def initializeGL(self):
+        gl.glClearColor(1, 1, 1, 0)
+        gl.glShadeModel(gl.GL_SMOOTH)
+        gl.glEnable(gl.GL_COLOR_MATERIAL)
+        gl.glEnable(gl.GL_LIGHTING)
+
+        lightPos = [100, 100, 100, 0]
+        gl.glLightfv(gl.GL_LIGHT0, gl.GL_POSITION, lightPos)
+        gl.glLightfv(gl.GL_LIGHT0, gl.GL_POSITION, lightPos)
+        gl.glEnable(gl.GL_LIGHTING)
+        gl.glEnable(gl.GL_LIGHT0)
+        gl.glEnable(gl.GL_DEPTH_TEST)
+
+        gl.glTranslatef(0.0, 0.0, 0.0)
+
+    def paintGL(self):
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glPushMatrix()
+        # glu.gluPerspective(180, 4 / 3, -1000, 1000)
+        # gl.glFrustum(120.0, 1.0, -1.0, 1.0, -1.0, 1.0)
+
+        self.draw_system()
+
+        gl.glColor3f(0.0, 1.0, 0.0)
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex3d(0, 0, 0)
+        gl.glVertex3d(0, 0.1, 0)
+        gl.glEnd()
+
+        gl.glColor3f(1.0, 0.0, 0.0)
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex3d(0, 0, 0)
+        gl.glVertex3d(0, 0, 1)
+        gl.glEnd()
+
+        gl.glColor3f(0.0, 0.0, 0.1)
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex3d(0, 0, 0)
+        gl.glVertex3d(0.1, 0, 0)
+        gl.glEnd()
+
+        gl.glPopMatrix()
+
+    def draw_system(self):
+        for i in range(self.last_index + 1):
+            r = 0.002
+            gl.glColor3f(0.0, 0.0, 0.0)
+            gl.glBegin(gl.GL_LINES)
+            gl.glVertex3d(self.coordinates[i][0] * r, self.coordinates[i][1] * r, 0)
+            gl.glVertex3d(self.coordinates[i][2] * r, self.coordinates[i][3] * r, 0)
+            gl.glEnd()
+        if self.last_index != len(self.coordinates) - 1:
+            self.last_index += 1
+        self.update()
 
 
 class MenuWindow(QMainWindow, Ui_MainWindow):
@@ -18,17 +93,18 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.width = width
         self.height = height
-        self.x = width // 2
-        self.y = height // 2
+        self.x = 0
+        self.y = 0
         self.initUi()
-        self.get_params()
+        # self.get_params()
 
     def initUi(self):
+        self.openGLWidget = GLWidget(self.centralwidget)
+        self.openGLWidget.setGeometry(QtCore.QRect(400, 10, 141, 541))
+        self.openGLWidget.setObjectName("openGLWidget")
+
         con = sqlite3.connect('systems.db')
         cur = con.cursor()
-        self.last_i = 0
-        self.coordinates = []
-        self.flag = False
         self.examples = ['Другой вариант'] + list(
             map(lambda x: x[0], list(cur.execute("""SELECT name from systems""").fetchall())))
         con.close()
@@ -36,8 +112,10 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.comboBox.insertItems(0, self.examples)
         self.comboBox.currentTextChanged.connect(self.set_params)
         self.pushButton_confirm.clicked.connect(self.drawing)
+        self.openGLWidget.resize(self.height - 50, self.height - 50)  # check
+        self.setFixedWidth(self.width)
+        self.setFixedHeight(self.height)
 
-        self.resize(self.width, self.width)
         self.showMaximized()
 
     def set_params(self):
@@ -48,7 +126,7 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         else:
             con = sqlite3.connect('systems.db')
             cur = con.cursor()
-            params = list(cur.execute(f"""SELECT * FROM systems 
+            params = list(cur.execute(f"""SELECT * FROM systems
                             WHERE name='{choice}'""").fetchone()[2:])
             params[4] = '\n'.join(list(map(lambda x: x[1:-1], params[4].split(','))))
             con.close()
@@ -68,13 +146,12 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.textEdit.setText(params[4])
 
     def drawing(self):
-        self.last_i = 0
+        self.openGLWidget.last_index = -1
         self.get_params()
         self.get_coordinates()
-        self.flag = True
 
     def get_params(self):
-        self.d = {'вверх': pi, 'вправо': pi / 2, 'вниз': 0, 'влево': 3 * pi / 2}
+        self.d = {'вверх': 0, 'вправо': pi / 2, 'вниз': pi, 'влево': 3 * pi / 2}
         self.start_angle = self.d[self.comboBox_direction.currentText()]
         self.axiom = self.lineEdit_axiom.text()
         self.draw = self.lineEdit_draw.text()
@@ -113,7 +190,8 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
                 y = self.stack[-1][1]
                 angle_cur = self.stack[-1][2]
                 self.stack.pop()
-        print(self.coordinates)
+        # print(self.coordinates)
+        self.openGLWidget.coordinates = self.coordinates[::]
 
     def get_generation(self, n):
         s = self.axiom
@@ -132,45 +210,9 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
                 break
         return s[j:]
 
-    def draw_l_system(self, painter):
-        self.flag = False
-        for i in range(0, self.last_i):
-            if self.coordinates[i][2]:
-                painter.drawLine(*self.coordinates[i])
-        QTimer.singleShot(2000, self.update)
-        if self.last_i != len(self.coordinates):
-            self.flag = True
-            self.last_i += 1
-        else:
-            self.last_i = 0
-        self.update()
-
-    def draw_l_system2(self, painter):
-        for i in range(0, len(self.coordinates)):
-            if self.coordinates[i][2]:
-                painter.drawLine(*self.coordinates[i])
-        self.update()
-
-    def paintEvent(self, event):
-        painter = QPainter()
-        painter.begin(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(QPen(Qt.black, 2))
-
-        if self.flag:
-            self.draw_l_system(painter)
-        else:
-            self.draw_l_system2(painter)
-
-        dot_painter = QPainter()
-        dot_painter.begin(self)
-        dot_painter.setRenderHint(QPainter.Antialiasing)
-        dot_painter.setPen(QPen(Qt.red, 3))
-        dot_painter.drawLine(self.x, self.y, self.x + 1, self.y)
-
-    def mousePressEvent(self, event):
-        self.x = event.x()
-        self.y = event.y()
+    # def mousePressEvent(self, event):
+    #     self.x = event.x()
+    #     self.y = event.y()
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>453</width>
+    <width>563</width>
     <height>606</height>
    </rect>
   </property>
@@ -192,13 +192,23 @@
      </item>
     </layout>
    </widget>
+   <widget class="QOpenGLWidget" name="openGLWidget">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>10</y>
+      <width>141</width>
+      <height>541</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>453</width>
+     <width>563</width>
      <height>18</height>
     </rect>
    </property>
