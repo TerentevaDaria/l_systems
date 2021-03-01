@@ -12,6 +12,8 @@ from main_design import Ui_MainWindow
 
 import OpenGL.GL as gl
 
+import numpy as np
+
 sys.setrecursionlimit(1000000)
 
 
@@ -75,12 +77,12 @@ class GLWidget(QOpenGLWidget):
         gl.glPopMatrix()
 
     def draw_system(self):
-        for i in range(self.last_index + 1):
+        for i in range(1, self.last_index + 1):
             r = 0.002
             gl.glColor3f(0.0, 0.0, 0.0)
             gl.glBegin(gl.GL_LINES)
-            gl.glVertex3d(self.coordinates[i][0] * r, self.coordinates[i][1] * r, 0)
-            gl.glVertex3d(self.coordinates[i][2] * r, self.coordinates[i][3] * r, 0)
+            gl.glVertex3d(self.coordinates[i][0][0] * r, self.coordinates[i][0][1] * r, self.coordinates[i][0][2] * r)
+            gl.glVertex3d(self.coordinates[i][1][0] * r, self.coordinates[i][1][1] * r, self.coordinates[i][1][2] * r)
             gl.glEnd()
         if self.last_index != len(self.coordinates) - 1:
             self.last_index += 1
@@ -166,7 +168,7 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.step = int(self.spinBox_step.text())
         self.generation = int(self.spinBox_generation.text())
 
-    def get_coordinates(self):
+    def get_coordinates2(self):
         self.coordinates = []
         x = self.x
         y = self.y
@@ -192,6 +194,42 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
                 self.stack.pop()
         # print(self.coordinates)
         self.openGLWidget.coordinates = self.coordinates[::]
+
+    def get_coordinates(self):
+        self.coordinates = [[np.matrix([[0], [0], [0]]), np.matrix([[0], [0], [0]])]]
+        matrix = np.matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.stack = [[self.coordinates[0], matrix]]
+        for i in self.get_generation(self.generation):
+            if i in self.draw:
+                if i.isupper():
+                    self.coordinates.append([self.coordinates[-1][1], self.step * matrix.dot(np.matrix([[-1], [0], [0]])) + self.coordinates[-1][1]])
+            elif i == '+':
+                u_rot = np.matrix([[cos(self.angle), sin(self.angle), 0], [-sin(self.angle), cos(self.angle), 0], [0, 0, 1]])
+                matrix = matrix.dot(u_rot)
+            elif i == '-':
+                u_rot = np.matrix(
+                    [[cos(-self.angle), sin(-self.angle), 0], [-sin(-self.angle), cos(-self.angle), 0], [0, 0, 1]])
+                matrix = matrix.dot(u_rot)
+            elif i == '&':
+                l_rot = np.matrix([[cos(self.angle), 0, -sin(self.angle)], [0, 1, 0], [sin(self.angle), 0, cos(self.angle)]])
+                matrix = matrix.dot(l_rot)
+            elif i == '^':
+                l_rot = np.matrix([[cos(-self.angle), 0, -sin(-self.angle)], [0, 1, 0], [sin(-self.angle), 0, cos(-self.angle)]])
+                matrix = matrix.dot(l_rot)
+            elif i == '\\':
+                h_rot = np.matrix([[1, 0, 0], [0, cos(self.angle), -sin(self.angle)], [0, sin(self.angle), cos(self.angle)]])
+                matrix = matrix.dot(h_rot)
+            elif i == '/':
+                h_rot = np.matrix([[1, 0, 0], [0, cos(-self.angle), -sin(-self.angle)], [0, sin(-self.angle), cos(-self.angle)]])
+                matrix = matrix.dot(h_rot)
+            elif i == '[':
+                self.stack.append([self.coordinates[-1][1], matrix])
+            elif i == ']':
+                matrix = self.stack[-1][1]
+                self.coordinates.append([self.stack[-1][0], self.stack[-1][0]])
+                self.stack.pop()
+        print(self.coordinates)
+        self.openGLWidget.coordinates = list(map(lambda x: [[x[0][0][0], x[0][1][0], x[0][2][0]], [x[1][0][0], x[1][1][0], x[1][2][0]]], self.coordinates[::]))
 
     def get_generation(self, n):
         s = self.axiom
