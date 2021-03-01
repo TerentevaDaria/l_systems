@@ -4,7 +4,7 @@ from PyQt5 import QtCore
 from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush, QPaintEvent
 from PyQt5.QtTest import QTest
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QScrollArea, QSizePolicy, QOpenGLWidget, QLayout
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 
 from math import pi, sin, cos
 
@@ -18,6 +18,10 @@ sys.setrecursionlimit(1000000)
 
 
 class GLWidget(QOpenGLWidget):
+    xRotationChanged = pyqtSignal(int)
+    yRotationChanged = pyqtSignal(int)
+    zRotationChanged = pyqtSignal(int)
+
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
 
@@ -51,28 +55,32 @@ class GLWidget(QOpenGLWidget):
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glPushMatrix()
+        gl.glLoadIdentity()
+        gl.glRotated(self.xRot / 16.0, 1.0, 0.0, 0.0)
+        gl.glRotated(self.yRot / 16.0, 0.0, 1.0, 0.0)
+        gl.glRotated(self.zRot / 16.0, 0.0, 0.0, 1.0)
         # glu.gluPerspective(180, 4 / 3, -1000, 1000)
         # gl.glFrustum(120.0, 1.0, -1.0, 1.0, -1.0, 1.0)
 
         self.draw_system()
 
-        gl.glColor3f(0.0, 1.0, 0.0)
-        gl.glBegin(gl.GL_LINES)
-        gl.glVertex3d(0, 0, 0)
-        gl.glVertex3d(0, 0.1, 0)
-        gl.glEnd()
-
-        gl.glColor3f(1.0, 0.0, 0.0)
-        gl.glBegin(gl.GL_LINES)
-        gl.glVertex3d(0, 0, 0)
-        gl.glVertex3d(0, 0, 1)
-        gl.glEnd()
-
-        gl.glColor3f(0.0, 0.0, 0.1)
-        gl.glBegin(gl.GL_LINES)
-        gl.glVertex3d(0, 0, 0)
-        gl.glVertex3d(0.1, 0, 0)
-        gl.glEnd()
+        # gl.glColor3f(0.0, 1.0, 0.0)
+        # gl.glBegin(gl.GL_LINES)
+        # gl.glVertex3d(0, 0, 0)
+        # gl.glVertex3d(0, 0.1, 0)
+        # gl.glEnd()
+        #
+        # gl.glColor3f(1.0, 0.0, 0.0)
+        # gl.glBegin(gl.GL_LINES)
+        # gl.glVertex3d(0, 0, 0)
+        # gl.glVertex3d(0, 0, 1)
+        # gl.glEnd()
+        #
+        # gl.glColor3f(0.0, 0.0, 0.1)
+        # gl.glBegin(gl.GL_LINES)
+        # gl.glVertex3d(0, 0, 0)
+        # gl.glVertex3d(0.1, 0, 0)
+        # gl.glEnd()
 
         gl.glPopMatrix()
 
@@ -87,6 +95,50 @@ class GLWidget(QOpenGLWidget):
         if self.last_index != len(self.coordinates) - 1:
             self.last_index += 1
         self.update()
+
+    def setXRotation(self, angle):
+        angle = self.normalizeAngle(angle)
+        if angle != self.xRot:
+            self.xRot = angle
+            self.xRotationChanged.emit(angle)
+            self.update()
+
+    def setYRotation(self, angle):
+        angle = self.normalizeAngle(angle)
+        if angle != self.yRot:
+            self.yRot = angle
+            self.yRotationChanged.emit(angle)
+            self.update()
+
+    def setZRotation(self, angle):
+        angle = self.normalizeAngle(angle)
+        if angle != self.zRot:
+            self.zRot = angle
+            self.zRotationChanged.emit(angle)
+            self.update()
+
+    def mousePressEvent(self, event):
+        self.lastPos = event.pos()
+
+    def mouseMoveEvent(self, event):
+        dx = event.x() - self.lastPos.x()
+        dy = event.y() - self.lastPos.y()
+
+        if event.buttons() & Qt.LeftButton:
+            self.setXRotation(self.xRot + 8 * dy)
+            self.setYRotation(self.yRot + 8 * dx)
+        elif event.buttons() & Qt.RightButton:
+            self.setXRotation(self.xRot + 8 * dy)
+            self.setZRotation(self.zRot + 8 * dx)
+
+        self.lastPos = event.pos()
+
+    def normalizeAngle(self, angle):
+        while (angle < 0):
+            angle += 360 * 16
+        while (angle > 360 * 16):
+            angle -= 360 * 16
+        return angle
 
 
 class MenuWindow(QMainWindow, Ui_MainWindow):
@@ -192,7 +244,6 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
                 y = self.stack[-1][1]
                 angle_cur = self.stack[-1][2]
                 self.stack.pop()
-        # print(self.coordinates)
         self.openGLWidget.coordinates = self.coordinates[::]
 
     def get_coordinates(self):
@@ -228,7 +279,6 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
                 matrix = self.stack[-1][1]
                 self.coordinates.append([self.stack[-1][0], self.stack[-1][0]])
                 self.stack.pop()
-        print(self.coordinates)
         self.openGLWidget.coordinates = list(map(lambda x: [[x[0][0][0], x[0][1][0], x[0][2][0]], [x[1][0][0], x[1][1][0], x[1][2][0]]], self.coordinates[::]))
 
     def get_generation(self, n):
