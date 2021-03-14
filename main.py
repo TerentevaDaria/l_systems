@@ -1,9 +1,7 @@
-import sys, sqlite3, time
+import sys, sqlite3
 
 from PyQt5 import QtCore
-from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush, QPaintEvent
-from PyQt5.QtTest import QTest
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QScrollArea, QSizePolicy, QOpenGLWidget, QLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 
 from math import pi, sin, cos
@@ -59,28 +57,8 @@ class GLWidget(QOpenGLWidget):
         gl.glRotated(self.xRot / 16.0, 1.0, 0.0, 0.0)
         gl.glRotated(self.yRot / 16.0, 0.0, 1.0, 0.0)
         gl.glRotated(self.zRot / 16.0, 0.0, 0.0, 1.0)
-        # glu.gluPerspective(180, 4 / 3, -1000, 1000)
-        # gl.glFrustum(120.0, 1.0, -1.0, 1.0, -1.0, 1.0)
 
         self.draw_system()
-
-        # gl.glColor3f(0.0, 1.0, 0.0)
-        # gl.glBegin(gl.GL_LINES)
-        # gl.glVertex3d(0, 0, 0)
-        # gl.glVertex3d(0, 0.1, 0)
-        # gl.glEnd()
-        #
-        # gl.glColor3f(1.0, 0.0, 0.0)
-        # gl.glBegin(gl.GL_LINES)
-        # gl.glVertex3d(0, 0, 0)
-        # gl.glVertex3d(0, 0, 1)
-        # gl.glEnd()
-        #
-        # gl.glColor3f(0.0, 0.0, 0.1)
-        # gl.glBegin(gl.GL_LINES)
-        # gl.glVertex3d(0, 0, 0)
-        # gl.glVertex3d(0.1, 0, 0)
-        # gl.glEnd()
 
         gl.glPopMatrix()
 
@@ -150,9 +128,10 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.x = 0
         self.y = 0
         self.initUi()
-        # self.get_params()
 
     def initUi(self):
+        self.setWindowTitle('L-system')
+
         self.openGLWidget = GLWidget(self.centralwidget)
         self.openGLWidget.setGeometry(QtCore.QRect(400, 10, 141, 541))
         self.openGLWidget.setObjectName("openGLWidget")
@@ -182,22 +161,20 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
             cur = con.cursor()
             params = list(cur.execute(f"""SELECT * FROM systems
                             WHERE name='{choice}'""").fetchone()[2:])
-            params[4] = '\n'.join(list(map(lambda x: x[1:-1], params[4].split(','))))
+            params[3] = '\n'.join(list(map(lambda x: x[1:-1], params[3].split(','))))
             con.close()
             self.change_edit(True, params)
 
     def change_edit(self, bool_, params):
         self.lineEdit_axiom.setReadOnly(bool_)
         self.lineEdit_draw.setReadOnly(bool_)
-        self.lineEdit_skip.setReadOnly(bool_)
         self.doubleSpinBox_angle.setReadOnly(bool_)
         self.textEdit.setReadOnly(bool_)
 
         self.lineEdit_axiom.setText(params[0])
         self.doubleSpinBox_angle.setValue(params[1])
         self.lineEdit_draw.setText(params[2])
-        self.lineEdit_skip.setText(params[3])
-        self.textEdit.setText(params[4])
+        self.textEdit.setText(params[3])
 
     def drawing(self):
         self.openGLWidget.last_index = -1
@@ -205,11 +182,8 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.get_coordinates()
 
     def get_params(self):
-        self.d = {'вверх': 0, 'вправо': pi / 2, 'вниз': pi, 'влево': 3 * pi / 2}
-        self.start_angle = self.d[self.comboBox_direction.currentText()]
         self.axiom = self.lineEdit_axiom.text()
         self.draw = self.lineEdit_draw.text()
-        self.skip = self.lineEdit_skip.text()
         self.angle = float(self.doubleSpinBox_angle.text().replace(',', '.')) * pi / 180
         self.ruls = {}
         ruls_ = self.textEdit.toPlainText()
@@ -219,32 +193,6 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
                 self.ruls[key] = value
         self.step = int(self.spinBox_step.text())
         self.generation = int(self.spinBox_generation.text())
-
-    def get_coordinates2(self):
-        self.coordinates = []
-        x = self.x
-        y = self.y
-        self.stack = [(self.x, self.y, self.start_angle)]
-        angle_cur = self.start_angle
-        for i in self.get_generation(self.generation):
-            if i in self.draw:
-                if i.isupper():
-                    self.coordinates.append([x, y, x + self.step * sin(angle_cur), y + self.step * cos(angle_cur)])
-                x += self.step * sin(angle_cur)
-                y += self.step * cos(angle_cur)
-            elif i == '+':
-                angle_cur += self.angle
-            elif i == '-':
-                angle_cur -= self.angle
-            elif i == '[':
-                self.stack.append((x,
-                                   y, angle_cur))
-            elif i == ']':
-                x = self.stack[-1][0]
-                y = self.stack[-1][1]
-                angle_cur = self.stack[-1][2]
-                self.stack.pop()
-        self.openGLWidget.coordinates = self.coordinates[::]
 
     def get_coordinates(self):
         self.coordinates = [[np.matrix([[0], [0], [0]]), np.matrix([[0], [0], [0]])]]
@@ -273,6 +221,9 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
             elif i == '/':
                 h_rot = np.matrix([[1, 0, 0], [0, cos(-self.angle), -sin(-self.angle)], [0, sin(-self.angle), cos(-self.angle)]])
                 matrix = matrix.dot(h_rot)
+            elif i == '|':
+                u_rot = np.matrix([[cos(pi), sin(pi), 0], [-sin(pi), cos(pi), 0], [0, 0, 1]])
+                matrix = matrix.dot(u_rot)
             elif i == '[':
                 self.stack.append([self.coordinates[-1][1], matrix])
             elif i == ']':
@@ -298,10 +249,6 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
                 break
         return s[j:]
 
-    # def mousePressEvent(self, event):
-    #     self.x = event.x()
-    #     self.y = event.y()
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -313,9 +260,6 @@ if __name__ == "__main__":
     rect = screen.availableGeometry()
     print('Available: %d x %d' % (rect.width(), rect.height()))
 
-    try:
-        ex = MenuWindow(rect.width(), rect.height())
-        ex.show()
-        sys.exit(app.exec())
-    except Exception as e:
-        print(e)
+    ex = MenuWindow(rect.width(), rect.height())
+    ex.show()
+    sys.exit(app.exec())
