@@ -1,4 +1,5 @@
-import sys, sqlite3
+import sys
+import sqlite3
 
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget
@@ -112,9 +113,9 @@ class GLWidget(QOpenGLWidget):
         self.lastPos = event.pos()
 
     def normalizeAngle(self, angle):
-        while (angle < 0):
+        while angle < 0:
             angle += 360 * 16
-        while (angle > 360 * 16):
+        while angle > 360 * 16:
             angle -= 360 * 16
         return angle
 
@@ -175,8 +176,10 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.doubleSpinBox_angle.setValue(params[1])
         self.lineEdit_draw.setText(params[2])
         self.textEdit.setText(params[3])
+        self.label_error.setText('')
 
     def drawing(self):
+        self.label_error.setText('')
         self.openGLWidget.last_index = -1
         self.get_params()
         self.get_coordinates()
@@ -230,24 +233,25 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
                 matrix = self.stack[-1][1]
                 self.coordinates.append([self.stack[-1][0], self.stack[-1][0]])
                 self.stack.pop()
+        self.openGLWidget.last_index = len(self.coordinates) - 1 if not self.checkBox.isChecked() else -1
         self.openGLWidget.coordinates = list(map(lambda x: [[x[0][0][0], x[0][1][0], x[0][2][0]], [x[1][0][0], x[1][1][0], x[1][2][0]]], self.coordinates[::]))
 
     def get_generation(self, n):
         s = self.axiom
         for i in range(n):
             s1 = ''
+            cnt = 0
             for j in s:
                 if j in self.ruls:
                     s1 += self.ruls[j]
+                    cnt += 1
                 else:
                     s1 += j
+                if cnt > 1000:
+                    self.label_error.setText(f'Превышено допустимое время построения системы.\nЗначение поколения уменьшено до {i}')
+                    return s
             s = s1[::]
-        j = 0
-        for i in range(len(s)):
-            if s[i] not in ['+', '-']:
-                j = i
-                break
-        return s[j:]
+        return s
 
 
 if __name__ == "__main__":

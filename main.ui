@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>563</width>
-    <height>606</height>
+    <width>566</width>
+    <height>654</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,6 +24,51 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Аксиома:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Использовать для рисования</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEdit_draw"/>
+       </item>
+      </layout>
+     </item>
+     <item row="15" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>длина шага</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_step">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLineEdit" name="lineEdit_axiom"/>
+     </item>
      <item row="6" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
@@ -51,65 +96,6 @@
        </item>
       </layout>
      </item>
-     <item row="9" column="0">
-      <widget class="QTextEdit" name="textEdit"/>
-     </item>
-     <item row="7" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Правила:</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Аксиома:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="15" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>длина шага</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="spinBox_step">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>100</number>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="3" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>Использовать для рисования</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="lineEdit_draw"/>
-       </item>
-      </layout>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLineEdit" name="lineEdit_axiom"/>
-     </item>
      <item row="16" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_6">
        <item>
@@ -131,15 +117,36 @@
        </item>
       </layout>
      </item>
-     <item row="17" column="0">
+     <item row="7" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Правила:</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="0">
+      <widget class="QComboBox" name="comboBox"/>
+     </item>
+     <item row="18" column="0">
       <widget class="QPushButton" name="pushButton_confirm">
        <property name="text">
         <string>Построить</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="QComboBox" name="comboBox"/>
+     <item row="9" column="0">
+      <widget class="QTextEdit" name="textEdit"/>
+     </item>
+     <item row="17" column="0">
+      <widget class="QCheckBox" name="checkBox">
+       <property name="text">
+        <string>Анимация</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -153,13 +160,26 @@
      </rect>
     </property>
    </widget>
+   <widget class="QLabel" name="label_error">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>560</y>
+      <width>381</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>563</width>
+     <width>566</width>
      <height>18</height>
     </rect>
    </property>
