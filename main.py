@@ -198,13 +198,15 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.generation = int(self.spinBox_generation.text())
 
     def get_coordinates(self):
-        self.coordinates = [[np.matrix([[0], [0], [0]]), np.matrix([[0], [0], [0]])]]
+        prev = np.matrix([[0], [0], [0]])
+        self.coordinates = [[prev, prev]]
         matrix = np.matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        self.stack = [[self.coordinates[0], matrix]]
+        self.stack = [[prev, matrix]]
         for i in self.get_generation(self.generation):
             if i in self.draw:
                 if i.isupper():
-                    self.coordinates.append([self.coordinates[-1][1], self.step * matrix.dot(np.matrix([[-1], [0], [0]])) + self.coordinates[-1][1]])
+                    self.coordinates.append([prev, self.step * matrix.dot(np.matrix([[-1], [0], [0]])) + prev])
+                prev = self.step * matrix.dot(np.matrix([[-1], [0], [0]])) + prev
             elif i == '+':
                 u_rot = np.matrix([[cos(self.angle), sin(self.angle), 0], [-sin(self.angle), cos(self.angle), 0], [0, 0, 1]])
                 matrix = matrix.dot(u_rot)
@@ -228,9 +230,10 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
                 u_rot = np.matrix([[cos(pi), sin(pi), 0], [-sin(pi), cos(pi), 0], [0, 0, 1]])
                 matrix = matrix.dot(u_rot)
             elif i == '[':
-                self.stack.append([self.coordinates[-1][1], matrix])
+                self.stack.append([prev, matrix])
             elif i == ']':
                 matrix = self.stack[-1][1]
+                prev = self.stack[-1][0]
                 self.coordinates.append([self.stack[-1][0], self.stack[-1][0]])
                 self.stack.pop()
         self.openGLWidget.last_index = len(self.coordinates) - 1 if not self.checkBox.isChecked() else -1
