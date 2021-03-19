@@ -1,13 +1,11 @@
 import sys
 import sqlite3
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 
 from math import pi, sin, cos
-
-from main_design import Ui_MainWindow
 
 import OpenGL.GL as gl
 
@@ -16,7 +14,125 @@ import numpy as np
 sys.setrecursionlimit(1000000)
 
 
+class Ui_MainWindow(object):
+    """дизайн приложения"""
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(565, 692)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(10, 10, 381, 541))
+        self.gridLayoutWidget.setObjectName("gridLayoutWidget")
+        self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.setObjectName("gridLayout")
+        self.label = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.label.setObjectName("label")
+        self.gridLayout.addWidget(self.label, 1, 0, 1, 1)
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.label_7 = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.label_7.setObjectName("label_7")
+        self.horizontalLayout_3.addWidget(self.label_7)
+        self.lineEdit_draw = QtWidgets.QLineEdit(self.gridLayoutWidget)
+        self.lineEdit_draw.setObjectName("lineEdit_draw")
+        self.horizontalLayout_3.addWidget(self.lineEdit_draw)
+        self.gridLayout.addLayout(self.horizontalLayout_3, 3, 0, 1, 1)
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.label_2 = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.label_2.setObjectName("label_2")
+        self.horizontalLayout_4.addWidget(self.label_2)
+        self.spinBox_step = QtWidgets.QSpinBox(self.gridLayoutWidget)
+        self.spinBox_step.setMinimum(1)
+        self.spinBox_step.setMaximum(100)
+        self.spinBox_step.setObjectName("spinBox_step")
+        self.horizontalLayout_4.addWidget(self.spinBox_step)
+        self.gridLayout.addLayout(self.horizontalLayout_4, 15, 0, 1, 1)
+        self.lineEdit_axiom = QtWidgets.QLineEdit(self.gridLayoutWidget)
+        self.lineEdit_axiom.setObjectName("lineEdit_axiom")
+        self.gridLayout.addWidget(self.lineEdit_axiom, 2, 0, 1, 1)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.label_3 = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.label_3.setObjectName("label_3")
+        self.horizontalLayout.addWidget(self.label_3)
+        self.doubleSpinBox_angle = QtWidgets.QDoubleSpinBox(self.gridLayoutWidget)
+        self.doubleSpinBox_angle.setDecimals(1)
+        self.doubleSpinBox_angle.setMaximum(180.0)
+        self.doubleSpinBox_angle.setSingleStep(0.1)
+        self.doubleSpinBox_angle.setProperty("value", 90.0)
+        self.doubleSpinBox_angle.setObjectName("doubleSpinBox_angle")
+        self.horizontalLayout.addWidget(self.doubleSpinBox_angle)
+        self.gridLayout.addLayout(self.horizontalLayout, 6, 0, 1, 1)
+        self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
+        self.label_5 = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.label_5.setObjectName("label_5")
+        self.horizontalLayout_6.addWidget(self.label_5)
+        self.spinBox_generation = QtWidgets.QSpinBox(self.gridLayoutWidget)
+        self.spinBox_generation.setMaximum(50)
+        self.spinBox_generation.setProperty("value", 1)
+        self.spinBox_generation.setObjectName("spinBox_generation")
+        self.horizontalLayout_6.addWidget(self.spinBox_generation)
+        self.gridLayout.addLayout(self.horizontalLayout_6, 16, 0, 1, 1)
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.label_4 = QtWidgets.QLabel(self.gridLayoutWidget)
+        self.label_4.setObjectName("label_4")
+        self.horizontalLayout_2.addWidget(self.label_4)
+        self.gridLayout.addLayout(self.horizontalLayout_2, 7, 0, 1, 1)
+        self.comboBox = QtWidgets.QComboBox(self.gridLayoutWidget)
+        self.comboBox.setObjectName("comboBox")
+        self.gridLayout.addWidget(self.comboBox, 0, 0, 1, 1)
+        self.pushButton_confirm = QtWidgets.QPushButton(self.gridLayoutWidget)
+        self.pushButton_confirm.setObjectName("pushButton_confirm")
+        self.gridLayout.addWidget(self.pushButton_confirm, 18, 0, 1, 1)
+        self.textEdit = QtWidgets.QTextEdit(self.gridLayoutWidget)
+        self.textEdit.setObjectName("textEdit")
+        self.gridLayout.addWidget(self.textEdit, 9, 0, 1, 1)
+        self.checkBox = QtWidgets.QCheckBox(self.gridLayoutWidget)
+        self.checkBox.setObjectName("checkBox")
+        self.gridLayout.addWidget(self.checkBox, 17, 0, 1, 1)
+        self.openGLWidget = QtWidgets.QOpenGLWidget(self.centralwidget)
+        self.openGLWidget.setGeometry(QtCore.QRect(400, 10, 141, 541))
+        self.openGLWidget.setObjectName("openGLWidget")
+        self.label_error = QtWidgets.QLabel(self.centralwidget)
+        self.label_error.setGeometry(QtCore.QRect(10, 560, 381, 41))
+        self.label_error.setText("")
+        self.label_error.setObjectName("label_error")
+        self.label_res = QtWidgets.QLabel(self.centralwidget)
+        self.label_res.setGeometry(QtCore.QRect(10, 610, 381, 41))
+        self.label_res.setText("")
+        self.label_res.setObjectName("label_res")
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 565, 18))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.label.setText(_translate("MainWindow", "Аксиома:"))
+        self.label_7.setText(_translate("MainWindow", "Использовать для рисования"))
+        self.label_2.setText(_translate("MainWindow", "длина шага"))
+        self.label_3.setText(_translate("MainWindow", "Угол"))
+        self.label_5.setText(_translate("MainWindow", "поколение"))
+        self.label_4.setText(_translate("MainWindow", "Правила:"))
+        self.pushButton_confirm.setText(_translate("MainWindow", "Построить"))
+        self.checkBox.setText(_translate("MainWindow", "Анимация"))
+
+
 class GLWidget(QOpenGLWidget):
+    """работа с графикой"""
     xRotationChanged = pyqtSignal(int)
     yRotationChanged = pyqtSignal(int)
     zRotationChanged = pyqtSignal(int)
@@ -36,6 +152,7 @@ class GLWidget(QOpenGLWidget):
         timer.start(4)
 
     def initializeGL(self):
+        """инициализация PyOpenGL"""
         gl.glClearColor(1, 1, 1, 0)
         gl.glShadeModel(gl.GL_SMOOTH)
         gl.glEnable(gl.GL_COLOR_MATERIAL)
@@ -51,6 +168,7 @@ class GLWidget(QOpenGLWidget):
         gl.glTranslatef(0.0, 0.0, 0.0)
 
     def paintGL(self):
+        """отрисовка кадра"""
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         gl.glMatrixMode(gl.GL_MODELVIEW)
         gl.glPushMatrix()
@@ -64,6 +182,7 @@ class GLWidget(QOpenGLWidget):
         gl.glPopMatrix()
 
     def draw_system(self):
+        """отрисовка отрезков с заданными в self.coordinates координатами в масштабе"""
         for i in range(1, self.last_index + 1):
             r = 0.002
             gl.glColor3f(0.0, 0.0, 0.0)
@@ -76,6 +195,7 @@ class GLWidget(QOpenGLWidget):
         self.update()
 
     def setXRotation(self, angle):
+        """задание угла поворота вокруг оси Ох"""
         angle = self.normalizeAngle(angle)
         if angle != self.xRot:
             self.xRot = angle
@@ -83,6 +203,7 @@ class GLWidget(QOpenGLWidget):
             self.update()
 
     def setYRotation(self, angle):
+        """задание угла поворота вокруг оси Оy"""
         angle = self.normalizeAngle(angle)
         if angle != self.yRot:
             self.yRot = angle
@@ -90,6 +211,7 @@ class GLWidget(QOpenGLWidget):
             self.update()
 
     def setZRotation(self, angle):
+        """задание угла поворота вокруг оси Оz"""
         angle = self.normalizeAngle(angle)
         if angle != self.zRot:
             self.zRot = angle
@@ -97,9 +219,11 @@ class GLWidget(QOpenGLWidget):
             self.update()
 
     def mousePressEvent(self, event):
+        """точка, в которой была зажата кнопка мыши"""
         self.lastPos = event.pos()
 
     def mouseMoveEvent(self, event):
+        """преобразование движения мыши с зажатой кнопкой в углы поворота изображения"""
         dx = event.x() - self.lastPos.x()
         dy = event.y() - self.lastPos.y()
 
@@ -113,6 +237,7 @@ class GLWidget(QOpenGLWidget):
         self.lastPos = event.pos()
 
     def normalizeAngle(self, angle):
+        """нормализация угла поворота"""
         while angle < 0:
             angle += 360 * 16
         while angle > 360 * 16:
@@ -131,6 +256,7 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.initUi()
 
     def initUi(self):
+        """начальная настройка приложения"""
         self.setWindowTitle('L-system')
 
         self.openGLWidget = GLWidget(self.centralwidget)
@@ -153,6 +279,7 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.showMaximized()
 
     def set_params(self):
+        """получение и задание новых параметров при изменении текущей L-системы"""
         choice = self.comboBox.currentText().lstrip().rstrip()
         if choice == 'Другой вариант':
             default = ['', 90, '', '', '']
@@ -167,6 +294,7 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
             self.change_edit(True, params)
 
     def change_edit(self, bool_, params):
+        """смена возможности изменять значения виджетов и заполнение их параметрами"""
         self.lineEdit_axiom.setReadOnly(bool_)
         self.lineEdit_draw.setReadOnly(bool_)
         self.doubleSpinBox_angle.setReadOnly(bool_)
@@ -179,12 +307,14 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.label_error.setText('')
 
     def drawing(self):
+        """запуск отрисовки при нажатии кнопки Построить"""
         self.label_error.setText('')
         self.openGLWidget.last_index = -1
         self.get_params()
         self.get_coordinates()
 
     def get_params(self):
+        """Получение заданных параметров из виджетов"""
         self.axiom = self.lineEdit_axiom.text()
         self.draw = self.lineEdit_draw.text()
         self.angle = float(self.doubleSpinBox_angle.text().replace(',', '.')) * pi / 180
@@ -198,6 +328,7 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.generation = int(self.spinBox_generation.text())
 
     def get_coordinates(self):
+        """формирование списка с координатами отрезков"""
         prev = np.matrix([[0], [0], [0]])
         self.coordinates = [[prev, prev]]
         matrix = np.matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
@@ -240,6 +371,7 @@ class MenuWindow(QMainWindow, Ui_MainWindow):
         self.openGLWidget.coordinates = list(map(lambda x: [[x[0][0][0], x[0][1][0], x[0][2][0]], [x[1][0][0], x[1][1][0], x[1][2][0]]], self.coordinates[::]))
 
     def get_generation(self, n):
+        """получение поколения по его номеру"""
         s = self.axiom
         for i in range(n):
             s1 = ''
